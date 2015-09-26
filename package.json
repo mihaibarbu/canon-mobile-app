@@ -1,12 +1,13 @@
 {
-  "name"         : "node-web-scrape",
-  "version"      : "0.0.1",
-  "description"  : "Scrape le web.",
-  "main"         : "server.js",
-  "author"       : "Scotch",
-  "dependencies" : {
-    "express"    : "latest",
-    "request"    : "latest",
-    "cheerio"    : "latest"
+  "name": "node-canon-web-scrape",
+  "version": "0.0.1",
+  "description": "Ciordeste imprimantele pentru proiectul Canon Mobile App",
+  "main": "app.js",
+  "author": "Mihai Barbu",
+  "dependencies": {
+    "express": "latest",
+    "request": "latest",
+    "cheerio": "latest",
+    "sqlite3": "~3.1.0"
   }
 }

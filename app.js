@@ -3,6 +3,26 @@ var fs = require('fs');
 var request = require('request');
 var cheerio = require('cheerio');
 var app     = express();
+var file = "canonFileLocation.db";
+var exists = fs.existsSync(file);
+var sqlite3 = require("sqlite3").verbose();
+var db = new sqlite3.Database(file);
+
+db.serialize(function() {
+    db.run("CREATE TABLE IF NOT EXISTS location (id INTEGER PRIMARY KEY, html VARCHAR(200), imges VARCHAR(200))");
+
+    var stmt = db.prepare("INSERT INTO location VALUES(?,?,?)");
+
+    for (var i = 0; i < 2; i++) {
+        stmt.run(null, "canonmg_4480 " + i, '/images/canonmg_4480.jpg');
+    }
+    stmt.finalize();
+
+    db.each("SELECT rowid AS id, info FROM location", function(err, row) {
+        console.log(row.id + ": " + row.info);
+    });
+});
+db.close();
 
 app.get('/scrape', function(req, res) {
 
