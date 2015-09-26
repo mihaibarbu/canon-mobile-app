@@ -4,30 +4,34 @@ var request = require('request');
 var cheerio = require('cheerio');
 var app     = express();
 
-app.get('/scrape', function(req, res){
+app.get('/scrape', function(req, res) {
 
     url = 'http://www.canon-europe.com/printers/inkjet/maxify/maxify_mb2040/';
 
-    request(url, function(error, response, html){
+    request(url, function(error, response, html) {
         if(!error){
             var $ = cheerio.load(html);
 
             var content;
-            var json = { content : ""};
+            var imgs = [];
 
-            $('#c-content').filter(function(){
+            $('#c-content').filter(function() {
                 var data = $(this);
                 $('li[class=c-last]').remove();
                 $('#p-accessories').remove();
+                $('.c-grid.c-g4.c-gmp2').remove();
 
                 content = data.html();
             });
 
+            $('#c-content').find('img').each(function() {
+                var imgSrc = $(this).attr('src');
+                imgs.push(imgSrc);
+            });
+            console.log(imgs);
+
         }
 
-        //fs.writeFile('output.json', JSON.stringify(json, null, 4), function(err){
-        //    console.log('File successfully written! - Check your project directory for the output.json file');
-        //});
 
         fs.writeFile("maxify_mb2040.html", content, function(err) {
             if(err) {
@@ -36,7 +40,6 @@ app.get('/scrape', function(req, res){
 
             console.log("The file was saved!");
         });
-        //console.log(content);
 
         res.send('Check your console!')
     })
