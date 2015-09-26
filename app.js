@@ -5,28 +5,29 @@ var cheerio = require('cheerio');
 var app     = express();
 var file = "canonFileLocation.db";
 var exists = fs.existsSync(file);
-var sqlite3 = require("sqlite3").verbose();
+var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database(file);
 
-db.serialize(function() {
-    db.run("CREATE TABLE IF NOT EXISTS location (id INTEGER PRIMARY KEY, html VARCHAR(200), imges VARCHAR(200))");
-
-    var stmt = db.prepare("INSERT INTO location VALUES(?,?,?)");
-
-    for (var i = 0; i < 2; i++) {
-        stmt.run(null, "canonmg_4480 " + i, '/images/canonmg_4480.jpg');
-    }
-    stmt.finalize();
-
-    db.each("SELECT rowid AS id, info FROM location", function(err, row) {
-        console.log(row.id + ": " + row.info);
-    });
-});
-db.close();
+//db.serialize(function() {
+//    db.run("CREATE TABLE IF NOT EXISTS location (id INTEGER PRIMARY KEY, html VARCHAR(200), imges VARCHAR(200))");
+//
+//    var stmt = db.prepare("INSERT INTO location VALUES(?,?,?)");
+//
+//    for (var i = 0; i < 2; i++) {
+//        stmt.run(null, "canonmg_4480 " + i, '/images/canonmg_4480.jpg');
+//    }
+//    stmt.finalize();
+//
+//    db.each("SELECT rowid AS id, info FROM location", function(err, row) {
+//        console.log(row.id + ": " + row.info);
+//    });
+//});
+//db.close();
 
 app.get('/scrape', function(req, res) {
 
-    url = 'http://www.canon-europe.com/printers/inkjet/maxify/maxify_mb2040/';
+    url = 'http://www.canon-europe.com/printers/inkjet/maxify/maxify_mb2040';
+    canonUrl = "http://www.canon-europe.com";
 
     request(url, function(error, response, html) {
         if(!error){
@@ -47,6 +48,10 @@ app.get('/scrape', function(req, res) {
             $('#c-content').find('img').each(function() {
                 var imgSrc = $(this).attr('src');
                 imgs.push(imgSrc);
+                console.log(canonUrl+imgSrc);
+                for (var j = 0; j < imgs.length; j++) {
+                    request(canonUrl + imgSrc).pipe(fs.createWriteStream(imgSrc + '.jpg'));
+                }
             });
             console.log(imgs);
 
