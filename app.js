@@ -9,7 +9,7 @@ var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database(file);
 
 //db.serialize(function() {
-//    db.run("CREATE TABLE IF NOT EXISTS location (id INTEGER PRIMARY KEY, html VARCHAR(200), imges VARCHAR(200))");
+//    db.run("CREATE TABLE IF NOT EXISTS location (id INTEGER PRIMARY KEY, html VARCHAR(200), images VARCHAR(200))");
 //
 //    var stmt = db.prepare("INSERT INTO location VALUES(?,?,?)");
 //
@@ -46,15 +46,19 @@ app.get('/scrape', function(req, res) {
             });
 
             $('#c-content').find('img').each(function() {
-                var imgSrc = $(this).attr('src');
-                imgs.push(imgSrc);
-                console.log(canonUrl+imgSrc);
-                for (var j = 0; j < imgs.length; j++) {
-                    request(canonUrl + imgSrc).pipe(fs.createWriteStream(imgSrc + '.jpg'));
-                }
+                var imgIs = $(this).attr('src');
+                imgs.push(imgIs);
             });
-            console.log(imgs);
+            $('.c-product-thumbs-4').find('a').each(function() {
+               var bigImg = $(this).attr('href');
+                imgs.push(bigImg);
+            });
 
+            for (var j = 0; j < imgs.length; j++) {
+                var imgName = imgs[j].split('/');
+                var imgSrc = imgName[2];
+                request(canonUrl + '/images/' + imgSrc).pipe(fs.createWriteStream('images/' + imgSrc));
+            }
         }
 
 
