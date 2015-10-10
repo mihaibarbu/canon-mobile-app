@@ -6,11 +6,10 @@ var app     = express();
 var file = "printerInfo.sqlite";
 var exists = fs.existsSync(file);
 var sqlite3 = require('sqlite3').verbose();
-//var db = sqlite3.Database(file);
+var db = new sqlite3.Database(file);
 
-app.get('/scrape', function(req, res) {
+function pixma() {
 
-    //url = 'http://www.canon-europe.com/printers/inkjet/maxify/maxify_mb2040';
     url = 'http://www.canon-europe.com/printers/inkjet/pixma/range/';
     canonUrl = "http://www.canon-europe.com";
 
@@ -39,60 +38,72 @@ app.get('/scrape', function(req, res) {
             }
 
             var pixmaallunique = pixmaall.filter(onlyUnique);
-            //console.log(pixmaallunique);
 
             for (var i = 0; i < pixmaallunique.length; i++) {
-                //console.log(i);
                 console.log(pixmaallunique[i]);
 
-                var urlpixma = 'http://www.canon-europe.com' + pixmaallunique[i];
+                var urlpixma = canonUrl + pixmaallunique[i];
 
-                request(urlpixma, function (error, response, html) {
-                    if (!error) {
-                        var $ = cheerio.load(html);
+                writeHtml(urlpixma);
+                writeImages(urlpixma);
 
-                        var content;
-                        var imgs = [];
-
-                        $('#c-content').filter(function () {
-                            var data = $(this);
-                            $('li[class=c-last]').remove();
-                            $('#p-accessories').remove();
-                            $('.c-grid.c-g4.c-gmp2').remove();
-
-                            content = data.html();
-                        });
-
-                        var cutcontent = content.split('/');
-                        var htmlToSave = cutcontent[6];
-
-                        fs.writeFile(cutcontent[6], content, function(err) {
-                            if(err) {
-                                return console.log(err);
-                            }
-                        });
-
-                        $('#c-content').find('img').each(function () {
-                            var imgIs = $(this).attr('src');
-                            imgs.push(imgIs);
-                        });
-                        $('.c-product-thumbs-4').find('a').each(function () {
-                            var bigImg = $(this).attr('href');
-                            imgs.push(bigImg);
-                        });
-
-                        for (var j = 0; j < imgs.length; j++) {
-                            var imgName = imgs[j].split('/');
-                            var imgSrc = imgName[2];
-                            request(canonUrl + '/images/' + imgSrc).pipe(fs.createWriteStream('images/' + imgSrc));
-                        }
-                    }
-                });
             }
         }
     });
-});
+}
 
-app.listen('8081');
-console.log('Magic happens on port 8081');
-exports = module.exports = app;
+function writeHtml(urlToParse) {
+    request(urlToParse, function (error, response, html) {
+        if (!error) {
+            var $ = cheerio.load(html);
+
+            var content;
+
+            $('#c-content').filter(function () {
+                var data = $(this);
+                $('li[class=c-last]').remove();
+                $('#p-accessories').remove();
+                $('.c-grid.c-g4.c-gmp2').remove();
+
+                content = data.html();
+            });
+
+            var cutcontent = urlToParse.split('/');
+            var htmlToSave = cutcontent[6] + '.html';
+            console.log(htmlToSave);
+
+            fs.writeFile('html/' + htmlToSave, content, function (err) {
+                if (err) {
+                    return console.log(err);
+                }
+            });
+        }
+    });
+}
+
+function writeImages(urlToParse) {
+    request(urlToParse, function (error, response, html) {
+        if (!error) {
+            var $ = cheerio.load(html);
+
+            var imgs = [];
+
+            $('#c-content').find('img').each(function () {
+                var imgIs = $(this).attr('src');
+                imgs.push(imgIs);
+            });
+            $('.c-product-thumbs-4').find('a').each(function () {
+                var bigImg = $(this).attr('href');
+                imgs.push(bigImg);
+            });
+
+            for (var j = 0; j < imgs.length; j++) {
+                var imgName = imgs[j].split('/');
+                var imgSrc = imgName[2];
+                request(canonUrl + '/images/' + imgSrc).pipe(fs.createWriteStream('images/' + imgSrc));
+            }
+        }
+    });
+}
+
+pixma();
