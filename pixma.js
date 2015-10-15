@@ -3,17 +3,44 @@ var fs = require('fs');
 var request = require('request');
 var cheerio = require('cheerio');
 var app     = express();
-var file = "printerInfo.sqlite";
-var exists = fs.existsSync(file);
-var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database(file);
 
 function pixma() {
 
-    url = 'http://www.canon-europe.com/printers/inkjet/pixma/range/';
-    canonUrl = "http://www.canon-europe.com";
+    canonUrl = 'http://www.canon-europe.com/for_home/product_finder/multifunctionals/laser/';
 
-    request(url, function(error, response, html) {
+    links = [
+        "i-sensys_mf8580cdw"
+        , "i-sensys_mf9220cdn"
+        , "i-sensys_mf8550cdn"
+        , "i-sensys_mf9280cdn"
+        , "i-sensys_mf8540cdn"
+        , "i-sensys_mf8280cw"
+        , "i-sensys_mf8230cn"
+        , "i-sensys_mf6180dw"
+        , "i-sensys_mf6140dn"
+        , "i-sensys_mf4890dw"
+        , "i-sensys_mf4870dn"
+        , "i-sensys_mf4780w"
+        , "i-sensys_mf4750"
+        , "i-sensys_mf4730"
+        , "i-sensys_mf4410"
+        , "i-sensys_mf3010"
+        , "i-sensys_mf211"
+        , "i-sensys_mf212w"
+        , "i-sensys_mf216n"
+        , "i-sensys_mf217w"
+        , "i-sensys_mf226dn"
+        , "i-sensys_mf229dw"
+        , "i-sensys_mf623cn"
+        , "i-sensys_mf628cw"
+        , "i-sensys_mf724cdw"
+        , "i-sensys_mf728cdw"
+        , "i-sensys_mf729cx"
+        , "i-sensys_mf5980dw"
+        , "i-sensys_mf5940dn"
+    ];
+
+    request(canonUrl, function(error, response, html) {
         if(!error) {
             var $ = cheerio.load(html);
 
@@ -22,15 +49,13 @@ function pixma() {
             var pixmaall = [];
 
 
-            $('#c-content').find('.c-wrapper-100').each(function () {
-                var data = $(this);
-                data.find('a').each(function () {
-                    var pixmaprinter = $(this).attr('href');
+            $('.wide').find('a').each(function () {
+                var pixmaprinter = $(this).attr('href');
+                console.log(pixmaprinter);
 
-                    if (pixmaprinter && pixmaprinter.length > 20) {
-                        pixmaall.push(pixmaprinter);
-                    }
-                });
+                if (pixmaprinter && pixmaprinter.length > 20) {
+                    pixmaall.push(pixmaprinter);
+                }
             });
 
             function onlyUnique(value, index, self) {
@@ -39,18 +64,16 @@ function pixma() {
 
             var pixmaallunique = pixmaall.filter(onlyUnique);
 
-            for (var i = 0; i < pixmaallunique.length; i++) {
-                console.log(pixmaallunique[i]);
-
-                var urlpixma = canonUrl + pixmaallunique[i];
-
-                writeHtml(urlpixma);
-                writeImages(urlpixma);
-
+            for (var i = 0; i < links.length; i++) {
+                var urlscrap = canonUrl + links[i];
+                console.log(urlscrap);
+                writeHtml(urlscrap);
+                writeImages(urlscrap);
             }
         }
     });
 }
+
 
 function writeHtml(urlToParse) {
     request(urlToParse, function (error, response, html) {
@@ -64,19 +87,22 @@ function writeHtml(urlToParse) {
                 $('li[class=c-last]').remove();
                 $('#p-accessories').remove();
                 $('.c-grid.c-g4.c-gmp2').remove();
+                $('div.c-full-section').remove();
+                $('script').remove();
 
                 content = data.html();
+                var cutcontent = urlToParse.split('/');
+                var htmlToSave = cutcontent[7] + '.html';
+                console.log(htmlToSave);
+
+                fs.writeFile('html/' + htmlToSave, content, function (err) {
+                    if (err) {
+                        return console.log(err);
+                    }
+                });
             });
 
-            var cutcontent = urlToParse.split('/');
-            var htmlToSave = cutcontent[6] + '.html';
-            console.log(htmlToSave);
 
-            fs.writeFile('html/' + htmlToSave, content, function (err) {
-                if (err) {
-                    return console.log(err);
-                }
-            });
         }
     });
 }
@@ -100,6 +126,7 @@ function writeImages(urlToParse) {
             for (var j = 0; j < imgs.length; j++) {
                 var imgName = imgs[j].split('/');
                 var imgSrc = imgName[2];
+                console.log(imgSrc);
                 request(canonUrl + '/images/' + imgSrc).pipe(fs.createWriteStream('images/' + imgSrc));
             }
         }
