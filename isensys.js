@@ -7,6 +7,7 @@ var app     = express();
 function pixma() {
 
     canonUrl = 'http://www.canon-europe.com/for_home/product_finder/multifunctionals/laser/';
+    domain = 'http://www.canon-europe.com/';
 
     links = [
         "i-sensys_mf8580cdw"
@@ -42,38 +43,14 @@ function pixma() {
 
     request(canonUrl, function(error, response, html) {
         if(!error) {
-            var $ = cheerio.load(html);
-
-            var content;
-            var imgs = [];
-            var pixmaall = [];
-
-
-            $('.wide').find('a').each(function () {
-                var pixmaprinter = $(this).attr('href');
-                console.log(pixmaprinter);
-
-                if (pixmaprinter && pixmaprinter.length > 20) {
-                    pixmaall.push(pixmaprinter);
-                }
-            });
-
-            function onlyUnique(value, index, self) {
-                return self.indexOf(value) === index;
-            }
-
-            var pixmaallunique = pixmaall.filter(onlyUnique);
-
             for (var i = 0; i < links.length; i++) {
                 var urlscrap = canonUrl + links[i];
-                console.log(urlscrap);
                 writeHtml(urlscrap);
                 writeImages(urlscrap);
             }
         }
     });
 }
-
 
 function writeHtml(urlToParse) {
     request(urlToParse, function (error, response, html) {
@@ -101,8 +78,6 @@ function writeHtml(urlToParse) {
                     }
                 });
             });
-
-
         }
     });
 }
@@ -127,10 +102,9 @@ function writeImages(urlToParse) {
                 var imgName = imgs[j].split('/');
                 var imgSrc = imgName[2];
                 console.log(imgSrc);
-                request(canonUrl + '/images/' + imgSrc).pipe(fs.createWriteStream('images/' + imgSrc));
+                request(domain + '/images/' + imgSrc).pipe(fs.createWriteStream('images/' + imgSrc));
             }
         }
     });
 }
-
 pixma();
