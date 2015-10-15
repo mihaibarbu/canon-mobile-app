@@ -6,7 +6,7 @@ var app     = express();
 
 function pixma() {
 
-    url = 'http://www.canon-europe.com/printers/inkjet/pixma/range/';
+    url = 'http://www.canon-europe.com/printers/inkjet/maxify/range/';
     canonUrl = "http://www.canon-europe.com";
 
     request(url, function(error, response, html) {
@@ -70,6 +70,7 @@ function writeHtml(urlToParse) {
                     return console.log(err);
                 }
             });
+            console.log(htmlToSave);
         }
     });
 }
