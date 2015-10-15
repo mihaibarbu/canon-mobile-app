@@ -3,10 +3,6 @@ var fs = require('fs');
 var request = require('request');
 var cheerio = require('cheerio');
 var app     = express();
-var file = "printerInfo.sqlite";
-var exists = fs.existsSync(file);
-var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database(file);
 
 function pixma() {
 
@@ -20,7 +16,6 @@ function pixma() {
             var content;
             var imgs = [];
             var pixmaall = [];
-
 
             $('#c-content').find('.c-wrapper-100').each(function () {
                 var data = $(this);
@@ -40,7 +35,6 @@ function pixma() {
             var pixmaallunique = pixmaall.filter(onlyUnique);
 
             for (var i = 0; i < pixmaallunique.length; i++) {
-                console.log(pixmaallunique[i]);
 
                 var urlpixma = canonUrl + pixmaallunique[i];
 
@@ -70,7 +64,6 @@ function writeHtml(urlToParse) {
 
             var cutcontent = urlToParse.split('/');
             var htmlToSave = cutcontent[6] + '.html';
-            console.log(htmlToSave);
 
             fs.writeFile('html/' + htmlToSave, content, function (err) {
                 if (err) {
@@ -101,6 +94,7 @@ function writeImages(urlToParse) {
                 var imgName = imgs[j].split('/');
                 var imgSrc = imgName[2];
                 request(canonUrl + '/images/' + imgSrc).pipe(fs.createWriteStream('images/' + imgSrc));
+                console.log(imgSrc);
             }
         }
     });
