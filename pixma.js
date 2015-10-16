@@ -16,6 +16,7 @@ function pixma() {
             var content;
             var imgs = [];
             var pixmaall = [];
+            var imaginiPrimaPagina = [];
 
             $('#c-content').find('.c-wrapper-100').each(function () {
                 var data = $(this);
@@ -26,7 +27,20 @@ function pixma() {
                         pixmaall.push(pixmaprinter);
                     }
                 });
+                data.find('img').each(function () {
+                    var imaginiPaginaPrincipala = $(this).attr('src');
+                    imaginiPrimaPagina.push(imaginiPaginaPrincipala);
+                });
             });
+
+            for (var s = 0; s < imaginiPrimaPagina.length; s++) {
+                var imgName = imaginiPrimaPagina[s].split('/');
+                imgName = imgName[2];
+                request(canonUrl + '/images/' + imgName).pipe(fs.createWriteStream('images/' + imgName));
+                console.log(imgName);
+            }
+
+
 
             function onlyUnique(value, index, self) {
                 return self.indexOf(value) === index;
@@ -60,16 +74,17 @@ function writeHtml(urlToParse) {
                 $('.c-grid.c-g4.c-gmp2').remove();
 
                 content = data.html();
+                var cutcontent = urlToParse.split('/');
+                var htmlToSave = cutcontent[6] + '.html';
+
+                fs.writeFile('html/' + htmlToSave, content, function (err) {
+                    if (err) {
+                        return console.log(err);
+                    }
+                });
             });
 
-            var cutcontent = urlToParse.split('/');
-            var htmlToSave = cutcontent[6] + '.html';
 
-            fs.writeFile('html/' + htmlToSave, content, function (err) {
-                if (err) {
-                    return console.log(err);
-                }
-            });
         }
     });
 }
@@ -80,6 +95,7 @@ function writeImages(urlToParse) {
             var $ = cheerio.load(html);
 
             var imgs = [];
+            var lungime = 0;
 
             $('#c-content').find('img').each(function () {
                 var imgIs = $(this).attr('src');
@@ -89,7 +105,8 @@ function writeImages(urlToParse) {
                 var bigImg = $(this).attr('href');
                 imgs.push(bigImg);
             });
-
+            lungime += imgs.length;
+            console.log(lungime);
             for (var j = 0; j < imgs.length; j++) {
                 var imgName = imgs[j].split('/');
                 var imgSrc = imgName[2];
